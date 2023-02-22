@@ -22,10 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// The framerate management, which is between these lines-->     // { -------------------- }
-// is from https://github.com/Kofybrek/Tetris/blob/Main/Source/Main.cpp
-// Maybe there is a slight decrease in cpu consumption, but even without these lines of code the program works fine
-
+// The function window.sf::RenderWindow::setFramerateLimit(30); in the line 83 makes the cpu consumption go from ~35% to 1,5-2%
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
@@ -105,47 +102,15 @@ int main()
 	float fElapsedTime;
     sf::Event event;
 
-// { --------------------------------------------
-    // Used to make the game framerate-independent
-	unsigned lag = 0;
 
-    // Similar to lag, used to make the game framerate-independent
-	std::chrono::time_point<std::chrono::steady_clock> previous_time;
-
-	// Random device
-	std::random_device random_device;
-
-	// Random engine
-	std::default_random_engine random_engine(random_device());
-
-    // Get the current time and store it in the variable
-	previous_time = std::chrono::steady_clock::now();
-
-    unsigned FRAME_DURATION = 5;
-//-------------------------------------------- }
+//---------------------------------------------------
+    window.sf::RenderWindow::setFramerateLimit(30);
+//---------------------------------------------------
 
 
     //main loop
     while (window.isOpen())
     {   
-
-// { ---------------------------------------------
-        //Get the difference in time between the current frame and the previous frame
-		unsigned delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time).count();
-
-		//Add the difference to the lag
-		lag += delta_time;
-
-		//In other words, we're updating the current time for the next frame.
-		previous_time += std::chrono::microseconds(delta_time);
-
-
-        while (FRAME_DURATION <= lag)
-		{
-			//Subtract the right thing from the left thing
-			lag -= FRAME_DURATION;
-//---------------------------------------------- }
-
 
             // check all the windows events that were triggered since the last iteration of the loop
         
@@ -252,8 +217,6 @@ int main()
 
             renderTexture.display();
             window.display();
-
-        }   
     }      
 
     return 0;
