@@ -47,6 +47,9 @@ class gridTemplate{
      // Creates a full solved grid
      gridTemplate(int dif);
 
+     //changes difficulty
+     void changeDifficulty(int dif);
+
     private:
 
      // Creates an unsolved grid form a full grid
@@ -68,6 +71,8 @@ class gridTemplate{
      
      // Returns a cell from unsolved grid
      int getCell(int i, int j);
+     
+
 
 
     private:
