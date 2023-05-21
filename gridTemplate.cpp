@@ -46,6 +46,10 @@ using namespace std;
         
     };
 
+    void gridTemplate::changeDifficulty(int dif){
+        difficulty = dif;
+    }
+
     // Creates an unsolved grid form a full grid
     void gridTemplate::refillUnsolvedGrid(){
         for(int k=0; k<L; k++){
