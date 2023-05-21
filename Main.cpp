@@ -24,37 +24,34 @@ SOFTWARE.
 
 // The function window.sf::RenderWindow::setFramerateLimit(30); in the line 83 makes the cpu consumption go from ~35% to 1,5-2%
 
+// The function window.sf::RenderWindow::setFramerateLimit(30); in the line 83 makes the cpu consumption go from ~35% to 1,5-2%
+
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cmath>
 #include <chrono>
 #include <cstring>
-
 #include "gridTemplate.cpp"
 
 #define L 9
 using namespace std;
 
 bool firstMouseClick = false;
+bool changedif = false;
+bool enterPressed = false;
+int temp = 0;
 
 int main()
 
 {   
-    ///   PUT THE DIFFICULTY HERE (VALUE BETWEEN 0 - 81, THE BIGGER THE VALUE - THE MORE DIFFICULT)   ///
-
     int dif = 20;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
     int validMoves = dif;
     gridTemplate A(dif);
 
-    string pics[] = {"Images/grid.jpg" , "Images/lines.png" , "Images/nums.png" , "Images/x.png", "Images/spongebob_gj.jpg"};
+    string pics[] = {"Images/grid.jpg" , "Images/lines.png" , "Images/nums.png" , "Images/x.png", "Images/spongebob_gj.jpg", "Images/difficulty.png"};
     
-
-    //make the textures
-    sf::Texture grid, lines, num, X, emoji;
-
+    sf::Texture grid, lines, num, X, emoji, difficulty;
+    
     grid.loadFromFile(pics[0]);
     if (!grid.loadFromFile(pics[0]))
         return -1;
@@ -70,15 +67,19 @@ int main()
     emoji.loadFromFile(pics[4]);
     if (!emoji.loadFromFile(pics[4]))
         return -1;
+    difficulty.loadFromFile(pics[5]);
+    if (!difficulty.loadFromFile(pics[5]))
+        return -1;
 
     //make the sprites
-    sf::Sprite gridSprite, lineSprite1, lineSprite2, numSprite, Xsprite, emojiSprite;
+    sf::Sprite gridSprite, lineSprite1, lineSprite2, numSprite, Xsprite, emojiSprite, difficultySprite;
     gridSprite.setTexture(grid);
     lineSprite1.setTexture(lines);
     lineSprite2.setTexture(lines);
     numSprite.setTexture(num);
     Xsprite.setTexture(X);
     emojiSprite.setTexture(emoji);
+    difficultySprite.setTexture(difficulty);
 
 
     //make the grid an image to get the size to create the window accordingly
@@ -102,10 +103,7 @@ int main()
 	float fElapsedTime;
     sf::Event event;
 
-
-//---------------------------------------------------
     window.sf::RenderWindow::setFramerateLimit(30);
-//---------------------------------------------------
 
 
     //main loop
@@ -131,24 +129,49 @@ int main()
 
                 }
 
-                // check if a number was pressed
-                if ((event.type == sf::Event::KeyPressed) && (event.key.code >= sf::Keyboard::Num1) &&  (event.key.code <= sf::Keyboard::Num9) && firstMouseClick){
-                    int x = (int)(lineSprite1.getPosition().x)/67-2;
-                    int y = (int)(lineSprite2.getPosition().y)/67-2;
-
-
-                    // If the cell is empty we can check if the value pressed can be put in it
-                    if(A.getCell(y,x) == 0){
-                        A.putValue(y,x,(int)(event.key.code)-26);
-
-                        // check if the value is -1
-                        if(A.getCell(y, x) == -1)
-                            tp1 = chrono::system_clock::now();
-                        else
-                            validMoves--;              
+                if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Enter)){
+                    enterPressed = true;
+                    if(enterPressed && changedif){
+                        if(temp/10>=1 && temp/10<=80){
+                            dif = temp/10;
+                            validMoves = dif;
+                            A.changeDifficulty(dif);
+                            A.refillAll();
+                            changedif = false;
+                        }
+                        temp = 0;
+                        enterPressed = false; 
+                        changedif = false;
                     }
                 }
+                    
+                
+                // check if a number was pressed
+                if ((event.type == sf::Event::KeyPressed) && (event.key.code >= sf::Keyboard::Num1) && (event.key.code <= sf::Keyboard::Num9) && firstMouseClick){
+                    
+                    if(changedif){
+                        temp = (temp + (int)(event.key.code)-26)*10;
+                    }
+                    else{
+                        int x = (int)(lineSprite1.getPosition().x)/67-2;
+                        int y = (int)(lineSprite2.getPosition().y)/67-2;
+
+                        // If the cell is empty we can check if the value pressed can be put in it
+                        if(A.getCell(y,x) == 0){
+
+                            A.putValue(y,x,(int)(event.key.code)-26);
+                            // check if the value is -1
+                            if(A.getCell(y, x) == -1)
+                                tp1 = chrono::system_clock::now();
+                            else
+                                validMoves--;              
+
+                        }
+                    }    
+                }
             }
+
+            
 
             bool b_pressing = sf::Mouse::isButtonPressed(sf::Mouse::Left);
 
@@ -164,6 +187,25 @@ int main()
             renderTexture.draw(gridSprite);
             window.draw(gridSprite);
 
+            //draw the difficulty
+            difficultySprite.setPosition(67, 30);
+            renderTexture.draw(difficultySprite);
+            window.draw(difficultySprite);
+
+            if(dif/10>0){
+                numSprite.setTextureRect(sf::IntRect((dif/10)*67, 0, 67, 67));
+                numSprite.setPosition(110, 50);
+                renderTexture.draw(numSprite);
+                window.draw(numSprite);
+            }
+
+            numSprite.setTextureRect(sf::IntRect((dif%10)*67, 0, 67, 67));
+            numSprite.setPosition(128, 50);
+            renderTexture.draw(numSprite);
+            window.draw(numSprite);
+
+            
+            
 
             //draw the lines if player pressed in limits
             if(mouseX>67 && mouseX<670 && mouseY>134 && mouseY<737 ){
@@ -180,11 +222,21 @@ int main()
                 window.draw(lineSprite2);       
             }
 
+            //check if the player wants to change the difficulty
+            if(mouseX>67 && mouseX<230 && mouseY>30 && mouseY<130){
+                firstMouseClick = true;
+                changedif = true;
+            }
+            else {
+                changedif = false;
+                enterPressed = false;
+            }
+            
             //draw the already known numbers
             for(int k=0; k<L; k++){
                 for(int i=0; i<L; i++){
                     if(A.getCell(k, i)!=0 && A.getCell(k, i)!=-1){
-                        numSprite.setTextureRect(sf::IntRect((A.getCell(k, i)-1)*67, 0, 67, 67));
+                        numSprite.setTextureRect(sf::IntRect((A.getCell(k, i))*67, 0, 67, 67));
                         numSprite.setPosition((i+1)*67, (k+2)*67);
                         renderTexture.draw(numSprite);
 
@@ -195,7 +247,7 @@ int main()
                         window.draw(Xsprite);
 
                         // Measure the time that had passed since this cell was found to be -1, which we do by 
-                        // subtracting tp1(which is when the cell became -1) from tp2(which is the time now)
+                        // subtracting tp1 (which is when the cell became -1) from tp2 (which is the time now)
                         tp2 = chrono::system_clock::now();
 	                    chrono::duration<float> elapsedTime = tp2 - tp1;
 	                    float fElapsedTime = elapsedTime.count();
@@ -217,6 +269,7 @@ int main()
 
             renderTexture.display();
             window.display();
+ 
     }      
 
     return 0;
