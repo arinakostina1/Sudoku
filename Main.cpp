@@ -147,7 +147,7 @@ int main()
                     
                 
                 // check if a number was pressed
-                if ((event.type == sf::Event::KeyPressed) && (event.key.code >= sf::Keyboard::Num1) && (event.key.code <= sf::Keyboard::Num9) && firstMouseClick){
+                if ((event.type == sf::Event::KeyPressed) && (event.key.code >= sf::Keyboard::Num0) && (event.key.code <= sf::Keyboard::Num9) && firstMouseClick){
                     
                     if(changedif){
                         temp = (temp + (int)(event.key.code)-26)*10;
